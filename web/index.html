@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub Contribution Heatmap</title>
+  </head>
+  <body>
+    <div id="controls">
+      <span class="title">GitHub Contribution Heatmap</span>
+      <input id="username" type="text" placeholder="GitHub username" autocomplete="off" />
+      <select id="year" aria-label="Year"></select>
+      <select id="theme" aria-label="Color theme">
+        <option value="classic">GitHub Green</option>
+        <option value="ocean">Ocean</option>
+      </select>
+      <button id="go">Visualize</button>
+      <span id="total" class="total"></span>
+      <span id="status" class="status"></span>
+    </div>
+    <div id="scene"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

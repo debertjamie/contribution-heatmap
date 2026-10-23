@@ -1,0 +1,115 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+#controls {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(22, 27, 34, 0.92);
+  border-bottom: 1px solid #30363d;
+  flex-wrap: wrap;
+}
+
+#controls .title {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+#controls input,
+#controls select,
+#controls button {
+  background: #0d1117;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+#controls select {
+  /* Remove the native arrow and draw our own so we control its position. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Extra right padding gives the arrow room and keeps it off the edge. */
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23e6edf3' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  /* Position the arrow 10px in from the right edge, vertically centered. */
+  background-position: right 10px center;
+  background-size: 10px;
+}
+
+/* Give each select enough room for its text plus the arrow padding so
+   the selected option is never clipped. */
+#controls #year {
+  min-width: 92px;
+}
+
+#controls #theme {
+  min-width: 168px;
+}
+
+#controls input:focus,
+#controls select:focus,
+#controls button:focus {
+  outline: none;
+  border-color: #58a6ff;
+}
+
+#controls button {
+  cursor: pointer;
+  background: #238636;
+  border-color: #238636;
+  font-weight: 600;
+}
+
+#controls button:hover {
+  background: #2ea043;
+}
+
+#controls button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+#controls .total {
+  margin-left: 4px;
+  color: #7ee787;
+  font-variant-numeric: tabular-nums;
+}
+
+#controls .status {
+  color: #8b949e;
+}
+
+#controls .status.error {
+  color: #ff7b72;
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+#scene canvas {
+  display: block;
+}
