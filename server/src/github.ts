@@ -4,6 +4,8 @@
  * The backend acts as a proxy so the GitHub PAT never reaches the browser.
  */
 
+import { getCached, setCached } from './cache.js';
+
 export class HttpError extends Error {
   status: number;
 
@@ -84,6 +86,12 @@ export async function fetchContributions(
     throw new HttpError(500, 'GITHUB_TOKEN is not configured on the server');
   }
 
+  const cacheKey = `${username}:${year}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const from = `${year}-01-01T00:00:00Z`;
   const to = `${year}-12-31T23:59:59Z`;
 
@@ -107,10 +115,7 @@ export async function fetchContributions(
   }
 
   if (!response.ok) {
-    throw new HttpError(
-      500,
-      `GitHub GraphQL API returned HTTP ${response.status} ${response.statusText}`
-    );
+    throw mapUpstreamError(response);
   }
 
   let json: GraphQLResponse;
@@ -142,10 +147,51 @@ export async function fetchContributions(
     }
   }
 
-  return {
+  const result: ContributionsResult = {
     username,
     year,
     totalContributions: calendar.totalContributions,
     days,
   };
+
+  setCached(cacheKey, result);
+  return result;
+}
+
+/**
+ * Map a non-OK upstream GitHub response to an {@link HttpError} with a
+ * readable, client-actionable status:
+ *
+ * - 401 -> 502 (the server's own PAT is bad/expired).
+ * - 403 -> 429 when the response indicates rate limiting (header
+ *   `x-ratelimit-remaining: 0` or a status text mentioning "rate limit"),
+ *   otherwise 502 (plain forbidden).
+ * - any other non-OK -> 502 with the upstream status echoed.
+ */
+function mapUpstreamError(response: Response): HttpError {
+  const { status, statusText } = response;
+
+  if (status === 401) {
+    return new HttpError(
+      502,
+      'GitHub authentication failed — check GITHUB_TOKEN'
+    );
+  }
+
+  if (status === 403) {
+    const remaining = response.headers.get('x-ratelimit-remaining');
+    const mentionsRateLimit = /rate limit/i.test(statusText ?? '');
+    if (remaining === '0' || mentionsRateLimit) {
+      return new HttpError(
+        429,
+        'GitHub API rate limit exceeded — try again later'
+      );
+    }
+    return new HttpError(502, 'GitHub API request forbidden');
+  }
+
+  return new HttpError(
+    502,
+    `GitHub GraphQL API returned HTTP ${status} ${statusText}`
+  );
 }

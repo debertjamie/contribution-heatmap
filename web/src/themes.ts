@@ -26,7 +26,7 @@ const GREEN_SCALE = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
 const OCEAN_SCALE = ['#161b22', '#1f3a68', '#3457d5', '#6f42c1', '#b06bf6'];
 
 /** Map a count against the dataset max to a 0..4 bucket index. */
-function bucket(count: number, maxCount: number): number {
+export function bucket(count: number, maxCount: number): number {
   if (count <= 0) return 0;
   if (maxCount <= 0) return 1;
   const ratio = count / maxCount;
