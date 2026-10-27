@@ -4,8 +4,7 @@ A 3D visualizer for any GitHub user's contribution calendar as a 3D bar grid you
 
 The project is split into two independent halves:  
 - **`server/`**: a small Express + TypeScript backend proxy
-- **`web/`**: a Vite + vanilla TypeScript + Three.js frontend that fetches from
-  the backend and draws the 3D scene
+- **`web/`**: a Vite + vanilla TypeScript + Three.js frontend that fetches from the backend and draws the 3D scene
 
 ## Prerequisites
 
@@ -51,8 +50,7 @@ Scripts:
   }
   ```
 
-- Errors return `{ "error": "..." }` with status `400` (bad year), `404`
-  (unknown user), or `500` (missing token / upstream failure).
+- Errors return `{ "error": "..." }` with status `400` (bad year), `404` (unknown user), or `500` (missing token / upstream failure).
 
 ## Frontend setup (`web/`)
 
@@ -84,11 +82,60 @@ Scripts:
 
 ## Usage
 
-1. Start **both** halves: the backend on port **3001** and the frontend on port
-   **5173**. The backend's CORS is configured for the frontend's origin, so both
-   must be running.
+1. Start both halves: the backend on port **3001** and the frontend on port **5173**. The backend's CORS is configured for the frontend's origin.
 2. Open http://localhost:5173.
-3. Type a GitHub username, choose a year, optionally switch the color theme
-   (GitHub Green or Ocean), and click **Visualize**.
-4. Drag to rotate, scroll to zoom, right-drag to pan. The total contribution
-   count for the selected year is shown in the control bar.
+3. Type a GitHub username, choose a year, optionally switch the color theme (GitHub Green or Ocean), and click **Visualize**.
+4. Drag to rotate, scroll to zoom, right-drag to pan. The total contribution count for the selected year is shown in the control bar.
+
+## Production
+
+### Environment Variables
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `GITHUB_TOKEN` | GitHub Personal Access Token (`read:user` scope) | _none_ |
+| `PORT` | Port the server binds (on `0.0.0.0`) | `3001` |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins (deployed frontend URL) | `http://localhost:5173` |
+| `RATE_LIMIT_WINDOW_MS` | Rate-limit window in ms for `/api/contributions/*` | `60000` |
+| `RATE_LIMIT_MAX` | Max requests per IP per window for `/api/contributions/*` | `30` |
+| `CACHE_TTL_MS` | In-memory cache TTL in ms per `username:year` | `600000` |
+
+> `/health` is not rate-limited. Responses carry [helmet](https://helmetjs.github.io/) default security headers.
+
+### Building
+
+Build each half with `npm run build`
+
+```sh
+cd server && npm install && npm run build
+cd web && npm install && npm run build 
+```
+
+The frontend must be built with `VITE_API_BASE` pointing at your deployed backend URL, because the value is baked into the bundle at build time
+
+```sh
+cd web
+VITE_API_BASE=https://api.your-domain.example npm run build
+```
+
+### Docker
+
+Both halves ship a Dockerfile.
+
+Backend
+
+```sh
+docker build -t chm3d-server ./server
+docker run -p 3001:3001 \
+  -e GITHUB_TOKEN=ghp_your_token \
+  -e ALLOWED_ORIGINS=https://your-frontend.example \
+  chm3d-server
+```
+
+Frontend
+
+```sh
+docker build -t chm3d-web \
+  --build-arg VITE_API_BASE=https://api.your-domain.example ./web
+docker run -p 8080:80 chm3d-web
+```
